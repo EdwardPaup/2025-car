@@ -13,7 +13,7 @@ const int WRITE_FREQ = 10; // ms
 const int SELECTOR_PINS[] = {35, 36, 37, 38, 39, 40};
 const int CHECK_ENGINE = 27;
 const int DATA_SWITCH = 28;
-const int ALL_LEDS[14] = {4, 26, 5, 8, 6, 7, 3, 10, 2, 11, 1, 12, 0, 9};
+const int ALL_LEDS[14] = {4,5,6,2,3,0,1,12,26,10,11,7,8,9}; //if this isn't right then I think theyre in the order on the data sheet
 // const int ALL_LEDS[14] = {4, 4,4,4,4,4,4,4,4,4,4,4,4,4};
 
 
@@ -62,6 +62,14 @@ void handler(const CAN_message_t &msg) {
   if (ecu.decode(msg)) {
     // read ecu data
     // =============
+
+    bool engine_bad = true;
+    //condtions for solid check engine light: 
+    engine_bad = (ecu.data.clt>215) || (ecu.data.sensors1>125) || (ecu.data.sensors1<5) || (ecu.data.batt>15) || (ecu.data.batt<7)|| (ecu.data.sensors1 < 20 && ecu.data.rpm > 500 && ecu.data.rpm < 2400) || (ecu.data.sensors1 < 25 && ecu.data.rpm >=2400 && ecu.data.rpm < 4300) || (ecu.data.sensors1 < 30 && ecu.data.rpm >= 4300 && ecu.data.rpm < 6330) || (ecu.data.sensors1 < 35 && ecu.data.rpm >= 6330 && ecu.data.rpm < 8100) || (ecu.data.sensors1 < 40 && ecu.data.rpm >= 8100 && ecu.data.rpm < 10000) || (ecu.data.sensors1 < 45 && ecu.data.rpm > 10000);
+    bool engine_bad_blinking = true;
+    //conditions for blinking check engine light
+    engine_bad_blinking = (ecu.data.clt>230) || (ecu.data.sensors1 > 150) || (ecu.data.sensors1<1) || (ecu.data.sensors1 < 10 && ecu.data.rpm > 500 && ecu.data.rpm < 2400) || (ecu.data.sensors1 < 15 && ecu.data.rpm >=2400 && ecu.data.rpm < 4300) || (ecu.data.sensors1 < 20 && ecu.data.rpm >= 4300 && ecu.data.rpm < 6330) || (ecu.data.sensors1 < 25 && ecu.data.rpm >= 6330 && ecu.data.rpm < 8100) || (ecu.data.sensors1 < 30 && ecu.data.rpm >= 8100 && ecu.data.rpm < 10000) || (ecu.data.sensors1 < 35 && ecu.data.rpm > 10000);
+    digitalWrite(CHECK_ENGINE, engine_bad ? HIGH : LOW);
     if (is_dashboard) {
       set_rpm(ecu.data.rpm);
     }
